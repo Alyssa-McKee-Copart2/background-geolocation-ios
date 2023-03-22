@@ -114,8 +114,7 @@ static MAURLocationTransform s_locationTransform = nil;
 - (BOOL) post:(MAURLocation*)location toUrl:(NSString*)url withTemplate:(id)locationTemplate withHttpHeaders:(NSMutableDictionary*)httpHeaders error:(NSError * __autoreleasing *)outError;
 {
     NSArray *locations = [[NSArray alloc] initWithObjects:[location toResultFromTemplate:locationTemplate], nil];
-    //    NSArray *jsonArray = [NSJSONSerialization JSONObjectWithData: data options: NSJSONReadingMutableContainers error: &e];
-    NSData *data = [NSJSONSerialization dataWithJSONObject:locations options:0 error:outError];
+    NSData *data = [NSJSONSerialization dataWithJSONObject:[locations firstObject] options:0 error:outError];
     if (!data) {
         return NO;
     }
@@ -134,6 +133,7 @@ static MAURLocationTransform s_locationTransform = nil;
             [request addValue:value forHTTPHeaderField:key];
         }
     }
+    // here jsonStr ?
     [request setHTTPBody:[jsonStr dataUsingEncoding:NSUTF8StringEncoding]];
     
     // Create url connection and fire request

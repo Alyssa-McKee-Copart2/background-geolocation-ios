@@ -124,6 +124,9 @@ static MAURLocationTransform s_locationTransform = nil;
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
     [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    NSMutableString *correlationID = [NSMutableString stringWithString: @"M3-"];
+    [correlationID appendString: [[NSUUID UUID] UUIDString]];
+    [request setValue:correlationID forHTTPHeaderField:@"correlationID"];
     [request setHTTPMethod:@"POST"];
     if (httpHeaders != nil) {
         for(id key in httpHeaders) {

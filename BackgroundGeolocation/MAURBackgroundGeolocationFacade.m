@@ -137,7 +137,8 @@ FMDBLogger *sqliteLogger;
         [self runOnMainThread:^{
             
             // requesting new provider
-            if (![currentConfig.locationProvider isEqual:_config.locationProvider]) {
+            bool changedProvider = (![currentConfig.locationProvider isEqual:_config.locationProvider]);
+            if (changedProvider) {
                 [locationProvider onDestroy]; // destroy current provider
                 locationProvider = [self getProvider:_config.locationProvider.intValue error:&error];
             }
@@ -150,8 +151,20 @@ FMDBLogger *sqliteLogger;
             if (![locationProvider onConfigure:_config error:&error]) {
                 return;
             }
-            
-            isStarted = [locationProvider onStart:&error];
+            bool changedPauseLocationUpdates = ([currentConfig pauseLocationUpdates] != [_config pauseLocationUpdates]);
+            bool changedActivityType = (![currentConfig.activityType isEqual:_config.activityType]);
+            bool changedDistanceFilter = (![currentConfig.distanceFilter isEqualToNumber:_config.distanceFilter]);
+            bool changedDesiredAccuracy = ([currentConfig decodeDesiredAccuracy] != [_config decodeDesiredAccuracy]);
+            bool changedSaveBatteryOnBackground = (currentConfig.saveBatteryOnBackground != _config.saveBatteryOnBackground);
+            bool changedIsDebugging = ([currentConfig isDebugging] != [_config isDebugging]);
+            bool changedStationaryRadius = (![currentConfig.stationaryRadius isEqualToNumber:_config.stationaryRadius]);
+            bool changedStopOnTerminate = ([currentConfig stopOnTerminate] != [_config stopOnTerminate]);
+            bool needsRestart = changedProvider || changedPauseLocationUpdates || changedActivityType || 
+                                changedDistanceFilter || changedDesiredAccuracy || changedSaveBatteryOnBackground || 
+                                changedIsDebugging || changedStationaryRadius || changedStopOnTerminate;
+            if (needsRestart) {
+                isStarted = [locationProvider onStart:&error];
+            }
             locationProvider.delegate = self;
         }];
     }

@@ -144,9 +144,10 @@ enum {
     }
     
     [self switchMode:MAURForegroundMode];
-
+    if (!isStarted) { 
+        [self startMonitoringSignificantLocationChanges];
+    }
     isStarted = YES;
-
     return YES;
 }
 
@@ -184,7 +185,8 @@ enum {
         isAcquiringSpeed = YES;
         isAcquiringStationaryLocation = NO;
         [self stopMonitoringForRegion];
-        [self stopMonitoringSignificantLocationChanges];
+        // dont stop becuase I want significant to always be running. so that if the app is terminated, its already started
+        // [self stopMonitoringSignificantLocationChanges];
     } else if (operationMode == MAURBackgroundMode) {
         isAcquiringSpeed = NO;
         isAcquiringStationaryLocation = YES;
@@ -425,6 +427,8 @@ enum {
 {
     if (isStarted && !_config.stopOnTerminate) {
         [locationManager startMonitoringSignificantLocationChanges];
+    } else {
+       [locationManager stopMonitoringSignificantLocationChanges];
     }
 }
 

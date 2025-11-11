@@ -17,7 +17,7 @@
 
 static NSString * const TAG = @"MAURPostLocationTask";
 
-@interface MAURPostLocationTask() <MAURBackgroundSyncDelegate>
+@interface MAURPostLocationTask() <MAURPostLocationTaskDelegate>
 {
     
 }
@@ -138,7 +138,8 @@ static MAURLocationTransform s_locationTransform = nil;
     
     // Create url connection and fire request
     NSHTTPURLResponse* urlResponse = nil;
-    [NSURLConnection sendSynchronousRequest:request returningResponse:&urlResponse error:outError];
+    NSError *error = nil;
+    [NSURLConnection sendSynchronousRequest:request returningResponse:&urlResponse error:&error];
     
     NSInteger statusCode = urlResponse.statusCode;
     
@@ -149,19 +150,22 @@ static MAURLocationTransform s_locationTransform = nil;
         DDLogDebug(@"Location was sent to the server, and received an \"HTTP 285 Updated Not Required\"");
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (_delegate && [_delegate respondsToSelector:@selector(postLocationTaskRequestedAbortUpdates:)])
+            if (self.delegate && [self.delegate respondsToSelector:@selector(onAbortRequested)])
             {
-                [_delegate postLocationTaskRequestedAbortUpdates:self];
+                [self.delegate onAbortRequested];
             }
         });
     }
 
-    if (statusCode == 401)
-    {   
+    if (
+        statusCode == 401 ||
+        (error && [[error domain] isEqualToString:NSURLErrorDomain] && [error code] == NSURLErrorUserCancelledAuthentication) || 
+        (error && [[error domain] isEqualToString:NSURLErrorDomain] && [error code] == NSURLErrorUserAuthenticationRequired)
+    ) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (_delegate && [_delegate respondsToSelector:@selector(postLocationTaskHttpAuthorizationUpdates:)])
+            if (self.delegate && [self.delegate respondsToSelector:@selector(onHttpAuthorization)])
             {
-                [_delegate postLocationTaskHttpAuthorizationUpdates:self];
+                [self.delegate onHttpAuthorization];
             }
         });
     }
@@ -170,6 +174,10 @@ static MAURLocationTransform s_locationTransform = nil;
     if (statusCode >= 200 && statusCode < 300)
     {
         return YES;
+    }
+    
+    if (outError != nil) {
+        *outError = error;
     }
     
     if (*outError == nil) {
@@ -200,21 +208,21 @@ static MAURLocationTransform s_locationTransform = nil;
     return s_locationTransform;
 }
 
-#pragma mark - MAURBackgroundSyncDelegate
+#pragma mark - MAURPostLocationTaskDelegate
 
-- (void)backgroundSyncRequestedAbortUpdates:(MAURBackgroundSync *)task
+- (void) onAbortRequested
 {
-    if (_delegate && [_delegate respondsToSelector:@selector(postLocationTaskRequestedAbortUpdates:)])
+    if (self.delegate && [self.delegate respondsToSelector:@selector(onAbortRequested)])
     {
-        [_delegate postLocationTaskRequestedAbortUpdates:self];
+        [self.delegate onAbortRequested];
     }
 }
 
-- (void)backgroundSyncHttpAuthorizationUpdates:(MAURBackgroundSync *)task
+- (void) onHttpAuthorization
 {
-    if (_delegate && [_delegate respondsToSelector:@selector(postLocationTaskHttpAuthorizationUpdates:)])
+    if (self.delegate && [self.delegate respondsToSelector:@selector(onHttpAuthorization)])
     {
-        [_delegate postLocationTaskHttpAuthorizationUpdates:self];
+        [self.delegate onHttpAuthorization];
     }
 }
 

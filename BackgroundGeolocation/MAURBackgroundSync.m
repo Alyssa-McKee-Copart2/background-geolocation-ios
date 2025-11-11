@@ -77,6 +77,9 @@
     uint64_t bytesTotalForThisFile = [[[NSFileManager defaultManager] attributesOfItemAtPath:jsonUrl.path error:nil] fileSize];
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
+    NSMutableString *correlationID = [NSMutableString stringWithString: @"M3-"];
+    [correlationID appendString: [[NSUUID UUID] UUIDString]];
+    [request setValue:correlationID forHTTPHeaderField:@"correlationID"];
     [request setHTTPMethod:@"POST"];
     [request setValue:[NSString stringWithFormat:@"%llu", bytesTotalForThisFile] forHTTPHeaderField:@"Content-Length"];
     [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
@@ -148,19 +151,22 @@ NSString *stringFromFileSize(unsigned long long theSize)
         DDLogDebug(@"Locations were uploaded to the server, and received an \"HTTP 285 Updates Not Required\"");
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (_delegate && [_delegate respondsToSelector:@selector(backgroundSyncRequestedAbortUpdates:)])
+            if (self.delegate && [self.delegate respondsToSelector:@selector(onAbortRequested)])
             {
-                [_delegate backgroundSyncRequestedAbortUpdates:self];
+                [self.delegate onAbortRequested];
             }
         });
     }
 
-    if (statusCode == 401)
-    {   
+    if (
+        statusCode == 401 ||
+        (error && [[error domain] isEqualToString:NSURLErrorDomain] && [error code] == NSURLErrorUserCancelledAuthentication) || 
+        (error && [[error domain] isEqualToString:NSURLErrorDomain] && [error code] == NSURLErrorUserAuthenticationRequired)
+    ) {   
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (_delegate && [_delegate respondsToSelector:@selector(backgroundSyncHttpAuthorizationUpdates:)])
+            if (self.delegate && [self.delegate respondsToSelector:@selector(onHttpAuthorization)])
             {
-                [_delegate backgroundSyncHttpAuthorizationUpdates:self];
+                [self.delegate onHttpAuthorization];
             }
         });
     }

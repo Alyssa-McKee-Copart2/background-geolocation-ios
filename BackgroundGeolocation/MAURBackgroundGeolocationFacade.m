@@ -621,27 +621,27 @@ FMDBLogger *sqliteLogger;
 
 #pragma mark - MAURPostLocationTaskDelegate
 
-- (void) postLocationTaskRequestedAbortUpdates:(MAURPostLocationTask *)task
+- (void) onAbortRequested
 {
-    if (_delegate && [_delegate respondsToSelector:@selector(onAbortRequested)])
-    {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(onAbortRequested)]) {
         // We have a delegate, tell it that there's a request.
         // It will decide whether to stop or not.
-        [_delegate onAbortRequested];
-    }
-    else
-    {
+        [self.delegate onAbortRequested];
+    } else {
         // No delegate, we may be running in the background.
         // Let's just stop.
         [self stop:nil];
     }
 }
 
-- (void) postLocationTaskHttpAuthorizationUpdates:(MAURPostLocationTask *)task
+- (void) onHttpAuthorization
 {
-    if (_delegate && [_delegate respondsToSelector:@selector(onHttpAuthorization)])
-    {
-        [_delegate onHttpAuthorization];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(onHttpAuthorization)]) {
+        [self.delegate onHttpAuthorization];
+    } else {
+        // No delegate, we may be running in the background.
+        // Let's just stop.
+        [self stop:nil];
     }
 }
 

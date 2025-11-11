@@ -9,20 +9,13 @@
 #define MAURBackgroundSync_h
 
 #import <Foundation/Foundation.h>
+#import "MAURPostLocationTask.h"
 
 @class MAURBackgroundSync;
 
-@protocol MAURBackgroundSyncDelegate <NSObject>
-
-@optional
-- (void)backgroundSyncRequestedAbortUpdates:(MAURBackgroundSync * _Nonnull)task;
-- (void)backgroundSyncHttpAuthorizationUpdates:(MAURBackgroundSync * _Nonnull)task;
-
-@end
-
 @interface MAURBackgroundSync : NSObject
 
-@property (nonatomic, weak) id<MAURBackgroundSyncDelegate> _Nullable delegate;
+@property (nonatomic, weak) id<MAURPostLocationTaskDelegate> _Nullable delegate;
 
 - (instancetype) init;
 - (NSString*) status;

@@ -13,12 +13,13 @@
 #define MAURBackgroundGeolocationFacade_h
 
 #import "MAURProviderDelegate.h"
+#import "MAURPostLocationTask.h"
 #import "MAURLocation.h"
 #import "MAURConfig.h"
 
 @interface MAURBackgroundGeolocationFacade : NSObject
 
-@property (weak, nonatomic) id<MAURProviderDelegate> delegate;
+@property (weak, nonatomic) id<MAURProviderDelegate,MAURPostLocationTaskDelegate> delegate;
 
 - (BOOL) configure:(MAURConfig*)config error:(NSError * __autoreleasing *)outError;
 - (BOOL) start:(NSError * __autoreleasing *)outError;

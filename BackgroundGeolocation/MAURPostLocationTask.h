@@ -17,8 +17,8 @@
 @protocol MAURPostLocationTaskDelegate <NSObject>
 
 @optional
-- (void)postLocationTaskRequestedAbortUpdates:(MAURPostLocationTask * _Nonnull)task;
-- (void)postLocationTaskHttpAuthorizationUpdates:(MAURPostLocationTask * _Nonnull)task;
+- (void) onAbortRequested;
+- (void) onHttpAuthorization;
 
 @end
 
